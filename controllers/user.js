@@ -3,10 +3,9 @@ const pool = require('../database/config');
 
 const userGetAll = async (req = request, res = response) =>{
 
-   // const restUsers = await pool.query('select * from users')
+    const restUsers = await pool.query('select * from users')
     res.json(
-     //   restUsers.rows
-     {prueba:"fasf"}
+       restUsers.rows
     );
 }
 
