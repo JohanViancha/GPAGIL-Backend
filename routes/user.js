@@ -1,13 +1,17 @@
 const { Router } = require('express');
-const { userGetAll, 
+const { getUsersAll, 
         userPost, 
         userPut, 
+        getUserById,
+        getUserByAuthentication,
         userDelete } = require('../controllers/user')
 
 const router = Router();
 
 
-router.get('/userGetAll', userGetAll)  
+router.get('/getUsersAll', getUsersAll)  
+router.get('/getUserById/:id', getUserById)  
+router.get('/getUserByAuthentication/', getUserByAuthentication) 
 router.post('/', userPost)   
 router.put('/:id',userPut)   
 router.delete('/', userDelete)   
