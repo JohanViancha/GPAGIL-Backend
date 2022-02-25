@@ -1,12 +1,12 @@
 const { response, request } = require('express');
+const pool = require('../database/config');
 
-const userGet = (req = request, res) =>{
-    const params = req.query;
+const userGetAll = async (req = request, res = response) =>{
 
-    res.json({
-        msg:'get APIff -controlador',
-        params
-    });
+    const restUsers = await pool.query('select * from users')
+    res.json(
+        restUsers.rows
+    );
 }
 
 const userPost =(req, res) =>{
@@ -37,5 +37,5 @@ module.exports = {
     userPost,
     userPut,
     userDelete,
-    userGet
+    userGetAll
 }

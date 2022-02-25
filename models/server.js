@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors');
 const dbConnection = require('../database/config');
+const pool = require('../database/config');
 class Server{
 
     constructor(){
@@ -21,8 +22,10 @@ class Server{
 
     }
 
-    async conectarDB(){
-        await dbConnection();
+    conectarDB(){
+        pool.connect().then(res=>{
+            console.log('Conexión de base de datos establecida')
+        })
     }
 
     middleeares(){
