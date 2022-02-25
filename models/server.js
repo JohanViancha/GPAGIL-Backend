@@ -23,9 +23,9 @@ class Server{
     }
 
     conectarDB(){
-        pool.connect().then(res=>{
+        /*pool.connect().then(res=>{
             console.log('Conexión de base de datos establecida')
-        })
+        })*/
     }
 
     middleeares(){
@@ -45,7 +45,7 @@ class Server{
 
 
     listen(){
-        this.app.listen(this.port,()=>{
+        this.app.listen(this.port || 3000,()=>{
             console.log("El servidor está corriendo ", this.port);
         })
     }
