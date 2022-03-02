@@ -9,6 +9,7 @@ class Server{
         this.port = process.env.PORT;
 
         this.usersPath="/api/users";
+        this.projectsPath = "/api/projects";
 
         //Conectar a base de datos
         this.conectarDB();
@@ -41,6 +42,7 @@ class Server{
 
     routes(){
         this.app.use(this.usersPath, require('../routes/user'))
+        this.app.use(this.projectsPath, require('../routes/project'))
     }
 
 

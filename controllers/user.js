@@ -4,7 +4,7 @@ const pool = require('../database/config');
 const getUsersAll = async (req = request, res = response) =>{
 
     const restUsers = await pool.query('select * from users')
-    res.json(
+    res.status(200).json(
        restUsers.rows
     );
 }
@@ -66,37 +66,40 @@ const getUserByAuthentication = async (req = request, res = response) =>{
 }
 
 
+const createUser = async (req = request, res = response) =>{
+    const {name, lastname,email,password,img='img.png'} = req.body;
 
+    try{
+        const result = await pool.query(`insert into users 
+        (name_user,lastname_user, email_user, 
+        password_user, img_user) 
+        values ('${name}', '${lastname}',
+        '${email}','${password}','${img}')`);
 
-const userPost =(req, res) =>{
-
-    const {nombre, edad} = req.body;
-
-    res.json({
-        msg:'post APIff - controlador',
-        nombre,
-        edad
-    });
+        if(result.rowCount === 1){
+            res.status(200).json({
+                msg:"El usuario ha sido creado"
+            });
+        }else{
+            res.status(500).json({
+                msg:"No se pudo insertar el usuerio"
+            });  
+        }
+    }catch(error){
+        console.log(error)
+        if(error.constraint === 'email_unique'){
+            res.status(400).json({
+                msg: `El correo ${email} ya existe`
+            });
+        }
+       
+    }
+       
 }
 
-const userPut = (req, res) =>{
-
-    const id = req.params.id;
-    res.json({
-        msg:'put APIff - controlador' + id
-    });
-}
-
-const userDelete = (req, res) =>{
-    res.json({
-        msg:'delete APIff - controlador'
-    });
-}
 module.exports = {
-    userPost,
-    userPut,
-    userDelete,
     getUsersAll,
     getUserByAuthentication,
-    getUserById
+    getUserById,
+    createUser
 }
