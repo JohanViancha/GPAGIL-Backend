@@ -2,6 +2,20 @@ const express = require('express')
 const cors = require('cors');
 const dbConnection = require('../database/config');
 const pool = require('../database/config');
+const corsOpts = {
+    origin: '*',
+  
+    methods: [
+      'GET',
+      'POST',
+      'PUT',
+    'DELETE'
+    ],
+  
+    allowedHeaders: [
+      'Content-Type',
+    ],
+  };
 class Server{
 
     constructor(){
@@ -10,6 +24,8 @@ class Server{
 
         this.usersPath="/api/users";
         this.projectsPath = "/api/projects";
+
+        
 
         //Conectar a base de datos
         this.conectarDB();
@@ -31,7 +47,7 @@ class Server{
 
     middleeares(){
         //CORS
-        this.app.use(cors());
+        this.app.use(cors(corsOpts));
 
         //Lectura y perseo del body
         this.app.use(express.json())
@@ -39,6 +55,7 @@ class Server{
         //Directorio publico
         this.app.use(express.static('public'))
     }
+
 
     routes(){
         this.app.use(this.usersPath, require('../routes/user'))
