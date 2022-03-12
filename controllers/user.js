@@ -48,7 +48,8 @@ const getUserByAuthentication = async (req = request, res = response) =>{
     
     if(!email || !password){
         res.status(400).json({              
-                msg: "El email y el password son requeridos"
+                msg: "El email y el password son requeridos",
+                state: 'requerid'
             }  
          );
     }else{
@@ -56,11 +57,15 @@ const getUserByAuthentication = async (req = request, res = response) =>{
         console.log(restUser.rows.length);
         if(restUser.rows.length === 0){
             res.status(400).json({              
-                msg: "El usuario o la contraseña son incorrectos"
+                msg: "El usuario o la contraseña son incorrectos",
+                state: 'incorrect'
             }  
          );
         }
-        res.json(restUser.rows[0]);
+        res.json({
+            user: restUser.rows[0],
+            state: 'correct'
+        });
     }
     
 }
