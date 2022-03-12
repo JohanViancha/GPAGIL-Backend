@@ -9,7 +9,7 @@ const router = Router();
 
 router.get('/getUsersAll', getUsersAll)  
 router.get('/getUserById/:id', getUserById)  
-router.get('/getUserByAuthentication/', getUserByAuthentication) 
+router.post('/getUserByAuthentication/', getUserByAuthentication) 
 router.post('/createUser', createUser)   
 
 module.exports = router;
