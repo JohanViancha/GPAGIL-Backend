@@ -81,19 +81,30 @@ const createUser = async (req = request, res = response) =>{
         values ('${name}', '${lastname}',
         '${email}','${password}','${img}')`);
 
+        if(!name || !lastname || !email || !password){
+            res.status(200).json({
+                state:'requerid',
+                msg:"El nombre, apellido, email y password son obligatorios"
+            });
+
+        }
+
         if(result.rowCount === 1){
             res.status(200).json({
+                state:'correct',
                 msg:"El usuario ha sido creado"
             });
         }else{
             res.status(500).json({
-                msg:"No se pudo insertar el usuerio"
+                state:'error',
+                msg:"No se pudo insertar el usuario"
             });  
         }
     }catch(error){
         console.log(error)
         if(error.constraint === 'email_unique'){
             res.status(400).json({
+                state:'email_unique',
                 msg: `El correo ${email} ya existe`
             });
         }
