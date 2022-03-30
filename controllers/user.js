@@ -34,18 +34,14 @@ const getUserById = async (req = request, res = response) =>{
             res.status(400).json({              
                 msg: "El id recibido es incorrecto"
             });
-        }
-        
-        
+        }  
     }
-    
 }
-
-
 
 const getUserByAuthentication = async (req = request, res = response) =>{
     const {email,password}  = req.body;
-    
+    console.log(email)
+    console.log(password)
     if(!email || !password){
         res.status(400).json({              
                 msg: "El email y el password son requeridos",
@@ -54,19 +50,23 @@ const getUserByAuthentication = async (req = request, res = response) =>{
          );
     }else{
         const restUser = await pool.query(`select * from users where email_user='${email}' and password_user='${password}'`)
-        console.log(restUser.rows.length);
+
         if(restUser.rows.length === 0){
             res.status(400).json({              
                 msg: "El usuario o la contraseña son incorrectos",
                 state: 'incorrect'
             }  
          );
+        }else{
+            res.json({
+                user: restUser.rows[0],
+                state: 'correct'
+            });
         }
-        res.json({
-            user: restUser.rows[0],
-            state: 'correct'
-        });
+       
     }
+
+    res.end();
     
 }
 
