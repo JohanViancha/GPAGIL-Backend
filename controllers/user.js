@@ -43,8 +43,7 @@ const getUserByAuthentication = async (req = request, res = response) =>{
     console.log(email)
     console.log(password)
     if(!email || !password){
-        res.status(400).json({ 
-                ok:true,                 
+        res.status(400).ok(true).json({                
                 msg: "El email y el password son requeridos",
                 state: 'requerid'
             }  
@@ -53,15 +52,13 @@ const getUserByAuthentication = async (req = request, res = response) =>{
         const restUser = await pool.query(`select * from users where email_user='${email}' and password_user='${password}'`)
 
         if(restUser.rows.length === 0){
-            res.status(400).json({  
-                ok:true,           
+            res.status(400).ok(true).json({           
                 msg: "El usuario o la contraseña son incorrectos",
                 state: 'incorrect'
             }  
          );
         }else{
-            res.json({
-                ok:true,    
+            res.status(200).ok(true).json({  
                 user: restUser.rows[0],
                 state: 'correct'
             });
