@@ -13,7 +13,7 @@ const getProjectsAll = async (req=request, res=response)=>{
 
 const getProjectByUsuario = async(req=request, res=response)=>{
 
-    const {idProject}  = req.body;
+    const {idUsuario}  = req.body;
 
     if(!idProject){
         res.status(200).json({                
@@ -23,7 +23,7 @@ const getProjectByUsuario = async(req=request, res=response)=>{
          );
     }
     const projects = await pool.query(`select * from projects pr inner join users_projects userpro 
-    on pr.id_project = userpro.id_project where userpro.id_user = ${idProject}`);
+    on pr.id_project = userpro.id_project where userpro.id_user = ${idUsuario}`);
 
     res.status(200).json(
         projects.rows

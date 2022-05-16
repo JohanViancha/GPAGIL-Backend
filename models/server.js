@@ -24,6 +24,7 @@ class Server{
 
         this.usersPath="/api/users";
         this.projectsPath = "/api/projects";
+        this.taskPath = "/api/tasks";
 
         
 
@@ -60,6 +61,7 @@ class Server{
     routes(){
         this.app.use(this.usersPath, require('../routes/user'))
         this.app.use(this.projectsPath, require('../routes/project'))
+        this.app.use(this.taskPath, require('../routes/task'))
     }
 
 
