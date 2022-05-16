@@ -1,41 +1,116 @@
 const { response, request } = require('express');
 const pool = require('../database/config');
 
-const userGetAll = async (req = request, res = response) =>{
+const getUsersAll = async (req = request, res = response) =>{
 
     const restUsers = await pool.query('select * from users')
-    res.json(
-        restUsers.rows
+    res.status(200).json(
+       restUsers.rows
     );
 }
 
-const userPost =(req, res) =>{
+const getUserById = async (req = request, res = response) =>{
+    const id  = req.params.id;
 
-    const {nombre, edad} = req.body;
+    if(!id){
+        res.status(400).json({              
+                msg: "El es id del usuario es requerido"
+            }  
+         );
+    }else{
 
-    res.json({
-        msg:'post APIff - controlador',
-        nombre,
-        edad
-    });
+        try{
+            const restUser = await pool.query(`select * from users where id_user=${id}`)
+        
+            if(restUser.rows.length === 0){
+                res.status(400).json({              
+                    msg: "El id recibido no existe"
+                }  
+             );
+            }else{
+                res.json(restUser.rows[0]);
+            }
+        }catch(err){
+            res.status(400).json({              
+                msg: "El id recibido es incorrecto"
+            });
+        }  
+    }
 }
 
-const userPut = (req, res) =>{
+const getUserByAuthentication = async (req = request, res = response) =>{
+    const {email,password}  = req.body;
 
-    const id = req.params.id;
-    res.json({
-        msg:'put APIff - controlador' + id
-    });
+    if(!email || !password){
+        res.status(200).json({                
+                msg: "El email y el password son requeridos",
+                state: 'requerid'
+            }  
+         );
+    }else{
+        const restUser = await pool.query(`select * from users where email_user='${email}' and password_user='${password}'`)
+
+        if(restUser.rows.length === 0){
+            res.status(200).json({           
+                msg: "El usuario o la contraseña son incorrectos",
+                state: 'incorrect'
+            }  
+         );
+        }else{
+            res.status(200).json({  
+                user: restUser.rows[0],
+                state: 'correct'
+            });
+        }     
+    }
 }
 
-const userDelete = (req, res) =>{
-    res.json({
-        msg:'delete APIff - controlador'
-    });
+
+const createUser = async (req = request, res = response) =>{
+    const {name, lastname,email,password,img='img.png'} = req.body;
+
+    try{
+        const result = await pool.query(`insert into users 
+        (name_user,lastname_user, email_user, 
+        password_user, img_user) 
+        values ('${name}', '${lastname}',
+        '${email}','${password}','${img}')`);
+
+        if(!name || !lastname || !email || !password){
+            res.status(200).json({
+                state:'requerid',
+                msg:"El nombre, apellido, email y password son obligatorios"
+            });
+
+        }
+
+        if(result.rowCount === 1){
+            res.status(200).json({
+                state:'correct',
+                msg:"El usuario ha sido creado"
+            });
+        }else{
+            res.status(500).json({
+                state:'error',
+                msg:"No se pudo insertar el usuario"
+            });  
+        }
+    }catch(error){
+        console.log(error)
+        if(error.constraint === 'email_unique'){
+            res.status(400).json({
+                state:'email_unique',
+                msg: `El correo ${email} ya existe`
+            });
+        }
+       
+    }
+       
 }
+
 module.exports = {
-    userPost,
-    userPut,
-    userDelete,
-    userGetAll
+    getUsersAll,
+    getUserByAuthentication,
+    getUserById,
+    createUser
 }
