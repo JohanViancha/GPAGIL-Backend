@@ -6,6 +6,6 @@ const {
     } = require('../controllers/project')
 
 router.get('/getProjectsAll', getProjectsAll) 
-router.get('/getProjectByUsuario', getProjectByUsuario)   
+router.post('/getProjectByUsuario', getProjectByUsuario)   
 
 module.exports = router;
