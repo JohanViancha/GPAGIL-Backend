@@ -1,5 +1,6 @@
 const { response, request } = require('express');
 const pool = require('../database/config');
+const { param } = require('../routes/task');
 
 const getUsersAll = async (req = request, res = response) =>{
 
@@ -48,8 +49,8 @@ const getUserByAuthentication = async (req = request, res = response) =>{
             }  
          );
     }else{
-        const restUser = await pool.query(`select * from users where email_user='${email}' and password_user='${password}'`)
-
+        const restUser = await pool.query(`select id_user, email_user, img_user, lastname_user, name_user from users where email_user='${email}' and password_user='${password}'`)
+        
         if(restUser.rows.length === 0){
             res.status(200).json({           
                 msg: "El usuario o la contraseña son incorrectos",
@@ -105,12 +106,22 @@ const createUser = async (req = request, res = response) =>{
         }
        
     }
-       
 }
 
+const getUserByProject = async (req = request, res = response)=> {
+    const {idProyect} =  req.body;
+
+    const users = await pool.query(`select us.id_user, us.name_user, us.lastname_user from users us inner join users_projects uspro on us.id_user = uspro.id_user
+    where uspro.id_project = ${idProyect}`)
+    res.status(200).json(
+        users.rows
+    );
+}
+       
 module.exports = {
     getUsersAll,
     getUserByAuthentication,
     getUserById,
-    createUser
+    createUser,
+    getUserByProject
 }
