@@ -1,6 +1,7 @@
 const { response, request } = require('express');
+const res = require('express/lib/response');
 const pool = require('../database/config');
-const { param } = require('../routes/task');
+const {sendMail} = require('../mail/config');
 
 const getUsersAll = async (req = request, res = response) =>{
 
@@ -49,7 +50,7 @@ const getUserByAuthentication = async (req = request, res = response) =>{
             }  
          );
     }else{
-        const restUser = await pool.query(`select id_user, email_user, img_user, lastname_user, name_user from users where email_user='${email}' and password_user='${password}'`)
+        const restUser = await pool.query(`select id_user, email_user, img_user, lastname_user, name_user, verify_user,id_role from users where email_user='${email}' and password_user='${password}'`)
         
         if(restUser.rows.length === 0){
             res.status(200).json({           
@@ -57,6 +58,13 @@ const getUserByAuthentication = async (req = request, res = response) =>{
                 state: 'incorrect'
             }  
          );
+        }else if(!restUser.rows[0].verify_user){
+
+            res.status(200).json({           
+                msg: "El usuario aun no ha sido verificado",
+                state: 'no-verify'
+            });
+
         }else{
             res.status(200).json({  
                 user: restUser.rows[0],
@@ -66,30 +74,80 @@ const getUserByAuthentication = async (req = request, res = response) =>{
     }
 }
 
+const verifyUser = async (req = request, res = response)=>{
+    try{
+        const {idUser} = req.body;
+        console.log(idUser);
+        if(idUser){
+            const result = await pool.query(`update users set verify_user = true 
+            where id_user = ${idUser} RETURNING name_user,lastname_user`);
+
+            if(result.rowCount === 1){
+
+                res.status(200).json({
+                    'rowCount': result.rowCount,
+                    'updateState':true,
+                    'message': "La cuenta ha sido verificada"
+                    }
+                );
+            }else{
+                res.status(200).json({
+                    'rowCount': 0,
+                    'updateState':false,
+                    'message': "La cuenta no ha sido verificada, por favor comuniquese con soporte"
+                });
+            }
+        }
+        
+    }catch(err){
+        res.status(200).json({
+            'rowCount': 0,
+            'updateState':false,
+            'message': err.message
+        });
+    }
+    
+}
+
 
 const createUser = async (req = request, res = response) =>{
-    const {name, lastname,email,password,img='img.png'} = req.body;
+    const {name_user, lastname_user,email_user,password_user,img='img.png',tipo_user} = req.body;
 
     try{
-        const result = await pool.query(`insert into users 
-        (name_user,lastname_user, email_user, 
-        password_user, img_user) 
-        values ('${name}', '${lastname}',
-        '${email}','${password}','${img}')`);
-
-        if(!name || !lastname || !email || !password){
+       
+        if(!name_user || !lastname_user || !email_user || !password_user){
             res.status(200).json({
                 state:'requerid',
                 msg:"El nombre, apellido, email y password son obligatorios"
             });
 
         }
+        const result = await pool.query(`insert into users 
+        (name_user,lastname_user, email_user, 
+        password_user, img_user, verify_user, id_role) 
+        values ('${name_user}', '${lastname_user}',
+        '${email_user}','${password_user}','${img}', false,${tipo_user}) RETURNING id_user`);
 
         if(result.rowCount === 1){
-            res.status(200).json({
-                state:'correct',
-                msg:"El usuario ha sido creado"
-            });
+            const sendEmailUser = await sendMail({
+                from: 'Verificación de la cuenta', // sender address
+                to: email_user, // list of receivers
+                subject: "Verificación de la cuenta", // Subject line
+                html: `<b>Hola ${name_user} ${lastname_user}, hemos recibido el registro de tu usuario, para continuar por favor da clic en el botón de verificar <a href="http://localhost:4200/verify/${result.rows[0].id_user}" target="_blank" >Verificar cuenta</a></b>`, // html body
+            })
+
+            if(sendEmailUser){
+                res.status(200).json({
+                    state:'correct',
+                    msg:"El usuario ha sido creado"
+                });
+            }else{
+                res.status(200).json({
+                    state:'correct-noendemail',
+                    msg:"El usuario ha sido creado pero no se ha podido enviar el correo"
+                });
+            }
+           
         }else{
             res.status(500).json({
                 state:'error',
@@ -97,11 +155,11 @@ const createUser = async (req = request, res = response) =>{
             });  
         }
     }catch(error){
-        console.log(error)
+
         if(error.constraint === 'email_unique'){
             res.status(400).json({
                 state:'email_unique',
-                msg: `El correo ${email} ya existe`
+                msg: `El correo ${email_user} ya existe`
             });
         }
        
@@ -123,5 +181,6 @@ module.exports = {
     getUserByAuthentication,
     getUserById,
     createUser,
-    getUserByProject
+    getUserByProject,
+    verifyUser
 }

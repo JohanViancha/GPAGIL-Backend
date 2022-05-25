@@ -32,13 +32,23 @@ const updateStateTaskBy = async (req=request, res=response)=>{
 const createTask = async (req=request, res=response)=>{
 
     try{  
-        const {nameTask, descriptionTask, assignment, dateEnd, idProject}  = req.body;
+        const {nameTask, descriptionTask, assignment, dateEnd,priorityTask,subTasks, idProject}  = req.body;
         console.log(nameTask);
         const task = await pool.query(`insert into tasks (id_project,id_user_task, name_task,
-        description_task, state_task,assignment_date_task,end_date_task) values (${idProject},
-        ${assignment}, '${nameTask}','${descriptionTask}','1', NOW(),'${dateEnd}')`)
+        description_task, state_task,assignment_date_task,end_date_task, priority_task) values (${idProject},
+        ${assignment}, '${nameTask}','${descriptionTask}','1', NOW(),'${dateEnd}','${priorityTask}') RETURNING id_task`)
       
         if(task.rowCount === 1){
+
+            console.log(task.rows[0].id_task);
+           subTasks.forEach( async (element) => {
+               console.log(element);
+                const subTask = await pool.query(`insert into subtasks
+                 (id_task,name_subtask) values (${task.rows[0].id_task}, 
+                '${element.name}') `)
+
+            });
+
             res.status(200).json({
                 'rowCount': task.rowCount,
                 'updateState':true,
@@ -66,8 +76,25 @@ const createTask = async (req=request, res=response)=>{
    
 }
 
+const getTaskPriorityByUser= async (req=request, res=response)=>{
+    const {idUser}  = req.body;
+    const tasks = await pool.query(`
+    select 
+    case when priority_task='1' then 'Baja'
+     when priority_task='2' then 'Media'
+     else 'Alta' end as name, count(*) as value from tasks task inner join 
+        users us on us.id_user = task.id_user_task 
+    where us.id_user =${idUser} and state_task in ('1','2') group by priority_task 
+        `)
+
+    res.status(200).json(
+        tasks.rows
+    );
+}
+
 module.exports ={
     getTaskByProject,
     updateStateTaskBy,
-    createTask
+    createTask,
+    getTaskPriorityByUser
 }

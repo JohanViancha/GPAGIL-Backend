@@ -1,5 +1,6 @@
 const { response, request } = require('express');
 const pool = require('../database/config');
+const {sendMail} = require('../mail/config');
 
 
 const getProjectsAll = async (req=request, res=response)=>{
@@ -34,23 +35,35 @@ const createProject = async (req=request, res=response)=>{
     
     try{  
         const {nameProject, descriptionProject, assignment, dateEnd, idUser}  = req.body;
+
+        console.log(req.body);
         const project = await pool.query(`insert into projects (name_project,
         description_project, state_project,startdate_project,enddate_project,id_user_admin) 
         values ('${nameProject}','${descriptionProject}','1', NOW(),'${dateEnd}',${idUser}) RETURNING id_project`)
 
         if(project.rowCount === 1){
 
-            assignment.forEach(async (idUserAsig)=>{
+            await assignment.forEach(async ({id_user})=>{
                 await pool.query(`insert into users_projects (id_project, id_user)
-                values (${project.rows[0].id_project}, ${idUserAsig})`)
+                values (${project.rows[0].id_project}, ${id_user})`)
             })
 
-            res.status(200).json({
-                'rowCount': project.rowCount,
-                'updateState':true,
-                'message': "El proyecto ha sido creado"
-                }
-            );
+            const emailsAtSend = assignment.map(({email_user})=>email_user).join(",");
+
+            const sendEmailUser = await sendMail({
+                from: 'Asignación de proyecto', // sender address
+                to: emailsAtSend, // list of receivers
+                subject: "Asignación de proyecto", // Subject line
+                html: `<b>Hola,te han incluido en el proyecto ${nameProject}</b>`, // html body
+            })
+
+                res.status(200).json({
+                    'rowCount': project.rowCount,
+                    'updateState':true,
+                    'message': "El proyecto ha sido creado, hemos enviado correos a los usuarios notificando la partipación en este proyecto"
+                    }
+                );
+            
         }else{
             res.status(500).json({
                 'rowCount': project.rowCount,
