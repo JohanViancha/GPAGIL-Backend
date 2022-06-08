@@ -4,13 +4,27 @@ const pool = require('../database/config');
 
 const getTaskByProject = async (req=request, res=response)=>{
 
-    const {idProject}  = req.body;
-    const tasks = await pool.query(`select * from tasks task inner join projects pro on task.id_project = pro.id_project 
-    inner join users us on us.id_user = task.id_user_task where pro.id_project = ${idProject}`)
+    try{
+        const {idProject}  = req.body;
+        const tasks = await pool.query(`select * from tasks task inner join projects pro on task.id_project = pro.id_project 
+        inner join users us on us.id_user = task.id_user_task where pro.id_project = ${idProject}`)
+    
+        const subTasks = await pool.query(`select id_subtask, task.id_task, name_subtask, 
+        time_subtask, state_subtask from tasks task inner join projects pro 
+        on task.id_project = pro.id_project inner join subtasks sub on 
+        sub.id_task = task.id_task where pro.id_project = ${idProject}`)
+        
+        res.status(200).json({
 
-    res.status(200).json(
-        tasks.rows
-    );
+           'tasks': tasks.rows,
+            'subtasks': subTasks.rows
+            }
+        );
+    }catch(err){
+        console.log(err)
+
+    }
+   
 }
 
 const updateStateTaskBy = async (req=request, res=response)=>{
@@ -92,9 +106,34 @@ const getTaskPriorityByUser= async (req=request, res=response)=>{
     );
 }
 
+const updateStateSubTask = async (req=request, res=response)=>{
+
+    const {idSubTask}  = req.body;
+    const tasks = await pool.query(`update subtasks set state_subtask = true where id_subtask = ${idSubTask}`)
+
+    if(tasks.rowCount === 1){
+        res.status(200).json({
+            'rowCount': tasks.rowCount,
+            'updateState':true,
+            'message': "El estado de la subtarea ha sido modificada"
+            }
+        );
+    }else{
+        res.status(200).json({
+            'rowCount': tasks.rowCount,
+            'updateState':false,
+            'message': "Error al cambiar el estado de la subtarea ha sido modificada"
+            }
+        );
+    }
+   
+}
+
+
 module.exports ={
     getTaskByProject,
     updateStateTaskBy,
     createTask,
-    getTaskPriorityByUser
+    getTaskPriorityByUser,
+    updateStateSubTask
 }
