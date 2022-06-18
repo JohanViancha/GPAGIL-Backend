@@ -47,16 +47,13 @@ const createTask = async (req=request, res=response)=>{
 
     try{  
         const {nameTask, descriptionTask, assignment, dateEnd,priorityTask,subTasks, idProject}  = req.body;
-        console.log(nameTask);
+        console.log(assignment);
         const task = await pool.query(`insert into tasks (id_project,id_user_task, name_task,
         description_task, state_task,assignment_date_task,end_date_task, priority_task) values (${idProject},
         ${assignment}, '${nameTask}','${descriptionTask}','1', NOW(),'${dateEnd}','${priorityTask}') RETURNING id_task`)
       
         if(task.rowCount === 1){
-
-            console.log(task.rows[0].id_task);
            subTasks.forEach( async (element) => {
-               console.log(element);
                 const subTask = await pool.query(`insert into subtasks
                  (id_task,name_subtask) values (${task.rows[0].id_task}, 
                 '${element.name}') `)
@@ -98,7 +95,7 @@ const getTaskPriorityByUser= async (req=request, res=response)=>{
      when priority_task='2' then 'Media'
      else 'Alta' end as name, count(*) as value from tasks task inner join 
         users us on us.id_user = task.id_user_task 
-    where us.id_user =${idUser} and state_task in ('1','2') group by priority_task 
+    where us.id_user =${idUser} and state_task in ('1','2','3') group by priority_task 
         `)
 
     res.status(200).json(
@@ -130,10 +127,37 @@ const updateStateSubTask = async (req=request, res=response)=>{
 }
 
 
+const getTaskByAssignment = async (req=request, res=response)=>{
+   
+
+    try{
+        const {idUser}  = req.body;
+        const tasks = await pool.query(`select tas.id_user_task,pro.id_project, pro.name_project, 
+        tas.name_task, case when tas.state_task='1' then 'Por hacer'
+        when tas.state_task='2' or tas.state_task='3' then 'Haciendo'
+        end as state_task, case when priority_task='1' then 'Baja'
+        when priority_task='2' then 'Media'
+        else 'Alta' end as priority_task,tas.end_date_task
+        from tasks tas inner join projects pro on tas.id_project = pro.id_project
+        where tas.id_user_task =${idUser} and tas.state_task != '4'`)
+        res.status(200).json(
+           tasks.rows,
+            
+        );
+    }catch(err){
+        console.log(err)
+    }
+   
+}
+
+
+
 module.exports ={
     getTaskByProject,
     updateStateTaskBy,
     createTask,
     getTaskPriorityByUser,
-    updateStateSubTask
+    updateStateSubTask,
+    getTaskByAssignment
+    
 }

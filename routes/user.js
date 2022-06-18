@@ -5,7 +5,10 @@ const { getUsersAll,
         createUser,
         getUserByProject,
         verifyUser,
-        sendEmailForRecoverPassword
+        sendEmailForRecoverPassword,
+        verifyCodeSecurity,
+        updatePassword,
+        clearCodeSecurity
         } = require('../controllers/user')
 
 const router = Router();
@@ -17,5 +20,9 @@ router.post('/createUser', createUser)
 router.post('/getUserByProject', getUserByProject)
 router.post('/verifyUser', verifyUser)   
 router.post('/sendEmailForRecoverPassword', sendEmailForRecoverPassword)   
+router.post('/verifyCodeSecurity', verifyCodeSecurity)   
+router.post('/updatePassword', updatePassword)   
+router.post('/clearCodeSecurity', clearCodeSecurity)   
+
 
 module.exports = router;

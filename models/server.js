@@ -73,21 +73,33 @@ class Server{
     sockets(){        
         this.io.on('connection', (socket) => {
             console.log('Conectado')
-            socket.on('getMessageByProjectUser',(idProject)=>{
-                axios.post(`${process.env.url}${this.chatPath}/getMessageByProjectUser`,{idProject})
-                .then(response => {
-                    socket.emit("getMessageByProjectUser",response.data);
-                })           
-            })
-
             socket.on('sendMessageByProjectUser',({idUserProject, message})=>{
-                console.log(message);
                 axios.post(`${process.env.url}${this.chatPath}/sendMessageByProjectUser`,{idUserProject,message})
                 .then(response => {
-                    socket.emit("sendMessageByProjectUser",message);
+                    if(response.data.updateState){
+                        axios.get(`${process.env.url}${this.chatPath}/getAllMessage`)
+                        .then((response)=>{
+                            socket.emit("getAllMessage",response.data);
+                            socket.broadcast.emit("getAllMessage",response.data);
+                        })
+
+                    }else{
+                        console.log(response.data.message)
+                    }
+                   
                 })      
                      
             })
+
+
+        socket.on('getAllMessage',()=>{
+                axios.get(`${process.env.url}${this.chatPath}/getAllMessage`)
+                .then((response)=>{
+                    socket.emit("getAllMessage",response.data);
+                    socket.broadcast.emit("getAllMessage",response.data);
+                })
+            })      
+                     
         });
   
     }

@@ -17,11 +17,23 @@ const getMessageByProjectUser = async(req=request, res=response)=>{
 }
 
 
+const getAllMessage = async(req=request, res=response)=>{
+
+    const messages = await pool.query(`select chat.message, chat.datetime_send, us.name_user, us.lastname_user,userproj.id_project  from chat_message chat inner join users_projects
+    userproj on chat.id_user_projects = userproj.id_user_project 
+    inner join users us on us.id_user = userproj.id_user`);
+
+    res.status(200).json(
+        messages.rows
+     );
+}
+
+
+
 const sendMessageByProjectUser = async(req=request, res=response)=>{
 
     try{
         const {idUserProject,message}  = req.body
-
         const messages = await pool.query(`insert into chat_message (id_user_projects, 
             message, datetime_send) values (${idUserProject}, '${message}', NOW())`);
     
@@ -47,7 +59,7 @@ const sendMessageByProjectUser = async(req=request, res=response)=>{
         res.status(500).json({
             'rowCount': 0,
             'updateState':false,
-            'message': err.message
+            'message': idUserProject
             }
         );
 
@@ -57,5 +69,6 @@ const sendMessageByProjectUser = async(req=request, res=response)=>{
 
 module.exports ={
     getMessageByProjectUser,
-    sendMessageByProjectUser
+    sendMessageByProjectUser,
+    getAllMessage
 }
