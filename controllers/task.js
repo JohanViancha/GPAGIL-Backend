@@ -1,5 +1,8 @@
 const { response, request } = require('express');
 const pool = require('../database/config');
+const axios = require('axios');
+const {sendMail} = require('../mail/config');
+const { templateEmail } = require('../mail/template');
 
 
 const getTaskByProject = async (req=request, res=response)=>{
@@ -14,8 +17,7 @@ const getTaskByProject = async (req=request, res=response)=>{
         on task.id_project = pro.id_project inner join subtasks sub on 
         sub.id_task = task.id_task where pro.id_project = ${idProject}`)
         
-        res.status(200).json({
-
+        await res.status(200).json({
            'tasks': tasks.rows,
             'subtasks': subTasks.rows
             }
@@ -47,25 +49,32 @@ const createTask = async (req=request, res=response)=>{
 
     try{  
         const {nameTask, descriptionTask, assignment, dateEnd,priorityTask,subTasks, idProject}  = req.body;
-        console.log(assignment);
         const task = await pool.query(`insert into tasks (id_project,id_user_task, name_task,
         description_task, state_task,assignment_date_task,end_date_task, priority_task) values (${idProject},
         ${assignment}, '${nameTask}','${descriptionTask}','1', NOW(),'${dateEnd}','${priorityTask}') RETURNING id_task`)
       
         if(task.rowCount === 1){
-           subTasks.forEach( async (element) => {
-                const subTask = await pool.query(`insert into subtasks
-                 (id_task,name_subtask) values (${task.rows[0].id_task}, 
-                '${element.name}') `)
 
-            });
-
-            res.status(200).json({
-                'rowCount': task.rowCount,
-                'updateState':true,
-                'message': "La tarea ha sido creada"
-                }
-            );
+            insertSubtasks(subTasks, task.rows[0].id_task).then(()=>{
+                axios.get(`${process.env.url}/api/users/getUserById/${assignment}`)
+                .then(async (response)=>{
+                    const sendEmailUser = await sendMail({
+                        from: 'Asignación de tareas', // sender address
+                        to: response.data.email_user, // list of receivers
+                        subject: "Asignación de tareas", // Subject line
+                        html: templateEmail('assigment_task',{name_user:response.data.name_user, lastname_user:response.data.lastname_user , nameTask, descriptionTask,subTasks,priorityTask,dateEnd}), // html body
+                    })
+                })
+               
+    
+    
+                res.status(200).json({
+                    'rowCount': task.rowCount,
+                    'updateState':true,
+                    'message': "La tarea ha sido creada"
+                    }
+                );
+            })
         }else{
             res.status(500).json({
                 'rowCount': task.rowCount,
@@ -85,6 +94,21 @@ const createTask = async (req=request, res=response)=>{
     }
    
    
+}
+
+
+const insertSubtasks = (subTasks,idTask)=>{
+    return new Promise((resolve, reject)=>{
+        subTasks.forEach( async (element,index) => {
+            const subTask = await pool.query(`insert into subtasks
+             (id_task,name_subtask) values (${idTask}, 
+            '${element.name}') `)
+            if(subTasks.length-1  === index){
+                resolve(true);
+            }
+        });
+
+    })
 }
 
 const getTaskPriorityByUser= async (req=request, res=response)=>{

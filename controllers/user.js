@@ -111,7 +111,7 @@ const verifyUser = async (req = request, res = response)=>{
 
 
 const createUser = async (req = request, res = response) =>{
-    const {name_user, lastname_user,email_user,password_user,img_user,id_role} = req.body;
+    const {name_user, lastname_user,email_user,password_user,img_user="images/image_user",id_role} = req.body;
     try{
        
         if(!name_user || !lastname_user || !email_user || !password_user || id_role){
@@ -162,6 +162,38 @@ const createUser = async (req = request, res = response) =>{
             });
         }
        
+    }
+}
+
+
+
+
+const updateUser = async (req = request, res = response) =>{
+    const {id_user, name_user, lastname_user,img_user="images/image_user",id_role} = req.body;
+
+
+    try{
+        const result = await pool.query(`update users 
+        set name_user = '${name_user}',lastname_user = '${lastname_user}', 
+        img_user = '${img_user}', id_role=${id_role}
+        where id_user = ${id_user}`);
+
+        if(result.rowCount === 1){
+                res.status(200).json({
+                    'rowCount': result.rowCount,
+                    'updateState':true,
+                    'message': "El usuario ha sido modificdo"
+                });
+        }else{
+            res.status(400).json({
+                'rowCount': 0,
+                'updateState':false,
+                'message': "El usuario no fue modificado"
+            });
+           
+        } 
+    }catch(error){
+        console.log(error);   
     }
 }
 
@@ -270,5 +302,6 @@ module.exports = {
     sendEmailForRecoverPassword,
     verifyCodeSecurity,
     updatePassword,
-    clearCodeSecurity
+    clearCodeSecurity,
+    updateUser
 }

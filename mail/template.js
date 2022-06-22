@@ -35,12 +35,60 @@ const templateEmail = (type, content)=>{
       contentEmail = {
         name:'',
         idUser: '',
-        text: `Hola, has sido elegido como participante en el proyecto ${content.nameProject}. Recuerda que tus funciones son:`,
+        text: `Hola, has sido elegid@ como participante en el proyecto ${content.nameProject}. Recuerda que tus funciones son:`,
         listFunctions: `<li>Gestionar tareas asignadas por el administrador del proyecto</li>
                         <li>Comunicación activa con los integrantes de tu equipo</li>
                         <li>Hacer uso correcto de la plataforma</li>`,
         link: `<a style="color:#FFFFFF;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:20px;line-height:135%;" href="${process.env.urlFrontend}/login" target="_blank">Ir a la plataforma</a>`
         }
+      
+    break;
+
+
+    case 'assigment_task':
+      let dateEstimated = new Date(content.dateEnd).toLocaleString();
+      let priority = '';
+      switch (content.priorityTask){
+        case 1:
+        priority = 'Baja'
+        break;
+
+        case 2:
+          priority = 'Media'
+        break;
+
+        case 3:
+          priority = 'Alta'
+        break;
+
+        default:
+          priority = 'No especificada'
+        break;
+      }
+      const listSubtasks = content.subTasks.reduce((list, current)=>{
+          list = `<li>${current.name}</li>${list}`
+
+          return list;
+
+      }, '');
+      title =  'Asignación de tareas',
+      contentEmail = {
+        name:`${content.name_user} ${content.lastname_user}`,
+        idUser: '',
+        text: `Hola, tu líder te ha sido agsinad@ la siguiente tarea: `,
+        listFunctions: `<p><b>Nombre: </b>${content.nameTask}</p>
+        <p><b>Descripción: </b>${content.descriptionTask}</p>
+        <p><b>Prioridad: </b>${priority}</p>
+        <p><b>Fecha estimada de entrada: </b>${dateEstimated}</p>
+        <p><b>Subtareas:</b></p>${listSubtasks}
+        <br>
+        <hr>
+        <p><b>Recuerda seguir las siguientes recomendaciones:</b></p>
+        <li>Comunicación con los integrantes del equipo</li>
+        <li>Realizar la entrega de la tarea de acuerdo a la fecha y hora estimada</li>
+        <li>Cualquier duda comunicársela al líder del proyecto</li>`,
+        link: `<a style="color:#FFFFFF;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:20px;line-height:135%;" href="${process.env.urlFrontend}/login" target="_blank">Ir a la plataforma</a>`
+      }
       
     break;
   }

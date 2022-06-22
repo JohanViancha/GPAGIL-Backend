@@ -8,7 +8,8 @@ const { getUsersAll,
         sendEmailForRecoverPassword,
         verifyCodeSecurity,
         updatePassword,
-        clearCodeSecurity
+        clearCodeSecurity,
+        updateUser
         } = require('../controllers/user')
 
 const router = Router();
@@ -23,6 +24,8 @@ router.post('/sendEmailForRecoverPassword', sendEmailForRecoverPassword)
 router.post('/verifyCodeSecurity', verifyCodeSecurity)   
 router.post('/updatePassword', updatePassword)   
 router.post('/clearCodeSecurity', clearCodeSecurity)   
+router.post('/updateUser', updateUser)   
+
 
 
 module.exports = router;

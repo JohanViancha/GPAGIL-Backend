@@ -81,6 +81,39 @@ const getProjectByUsuario = async(req=request, res=response)=>{
 }
 
 
+
+const getTotalyByUser = async(req=request, res=response)=>{
+
+    const {idUser}  = req.body;
+
+    if(!idUser){
+        res.status(200).json({                
+                msg: "Error al tratar de listar los proyectos del usuario",
+                state: 'requerid'
+            }  
+         );
+    }
+    const projects = await pool.query(`select count(*) as projects  from projects pr inner join users_projects userpro 
+    on pr.id_project = userpro.id_project where userpro.id_user = ${idUser}`);
+
+    const tasks = await pool.query(`select count(*) as tasks  from tasks task inner join users us on task.id_user_task =  us.id_user 	
+    where us.id_user = ${idUser}`);
+
+    const subtasks = await pool.query(`select count(*) as subtasks  from tasks task inner join subtasks sub on sub.id_task = task.id_task
+    inner join users us on task.id_user_task =  us.id_user 	
+    where us.id_user = ${idUser}`);
+
+    res.status(200).json({
+       projects: projects.rows[0].projects,
+       tasks:tasks.rows[0].tasks,
+       subtasks: subtasks.rows[0].subtasks
+    }
+        
+     );
+}
+
+
+
 const createProject = async (req=request, res=response)=>{
     
     try{  
@@ -138,5 +171,6 @@ module.exports ={
     createProject,
     getProjectById,
     finishProjectById,
-    getProjectByIdUserIdProject
+    getProjectByIdUserIdProject,
+    getTotalyByUser
 }
