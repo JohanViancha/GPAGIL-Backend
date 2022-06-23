@@ -12,5 +12,5 @@ const pool = new pg.Client({
     connectionTimeoutMillis: 2000,
 });
 
-
+pool.connect();
 module.exports = pool;
