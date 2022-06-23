@@ -108,7 +108,6 @@ class Server{
         this.server.listen(this.port || 3000,()=>{
             console.log("El servidor está corriendo ", this.port);
             console.log("El servidor está corriendo ", process.env.dbname);
-            console.log("El servidor está corriendo ", process.env.PORT);
             console.log("El servidor está corriendo ", process.env.dbhost);
             console.log("El servidor está corriendo ", process.env.dbuser);
             console.log("El servidor está corriendo ", process.env.dbpassword);
