@@ -1,14 +1,13 @@
 require('dotenv').config();
-const { Pool } = require("pg")
+const pg = require("pg")
 
-const pool = new Pool({
+const pool = new pg.Client({
     user: process.env.dbuser,
     host: process.env.dbhost,
     database: process.env.dbname,
     password: process.env.dbpassword,
     port: process.env.dbport,
     max: 20,
-    ssl:true,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
 });
