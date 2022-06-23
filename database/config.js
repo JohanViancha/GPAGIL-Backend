@@ -1,7 +1,7 @@
 require('dotenv').config();
-const pg = require("pg")
+const { Pool } = require("pg")
 
-const pool = new pg.Client({
+const pool = new Pool({
     user: process.env.dbuser,
     host: process.env.dbhost,
     database: process.env.dbname,
@@ -12,5 +12,5 @@ const pool = new pg.Client({
     connectionTimeoutMillis: 2000,
 });
 
-pool.connect();
+
 module.exports = pool;
