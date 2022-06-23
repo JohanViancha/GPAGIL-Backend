@@ -107,6 +107,7 @@ class Server{
     listen(){
         this.server.listen(this.port || 3000,()=>{
             console.log("El servidor está corriendo ", this.port);
+            console.log("El servidor está corriendo ", process.env.dbname);
         })
 
     }
